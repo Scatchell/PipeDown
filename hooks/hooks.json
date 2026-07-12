@@ -1,0 +1,19 @@
+{
+  "description": "Detect newly added code comments before file-editing tools run",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/detect_comments.py"],
+            "timeout": 10,
+            "statusMessage": "Checking for new code comments"
+          }
+        ]
+      }
+    ]
+  }
+}

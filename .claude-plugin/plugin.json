@@ -1,0 +1,8 @@
+{
+  "name": "commenter",
+  "description": "Challenges newly added code comments before Claude writes them.",
+  "author": {
+    "name": "Commenter maintainers"
+  },
+  "license": "MIT"
+}

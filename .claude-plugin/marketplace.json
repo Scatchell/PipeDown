@@ -1,0 +1,14 @@
+{
+  "name": "commenter-plugins",
+  "owner": {
+    "name": "Commenter maintainers"
+  },
+  "description": "Claude Code plugins for keeping code comments intentional",
+  "plugins": [
+    {
+      "name": "commenter",
+      "source": "./",
+      "description": "Challenges newly added code comments before Claude writes them"
+    }
+  ]
+}
