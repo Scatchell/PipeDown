@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Challenge Claude Code once when an edit introduces comment tokens."""
+"""Detect added comments before an edit and request review after it succeeds."""
 
 from __future__ import annotations
 
-from collections import Counter
 import hashlib
+from collections import Counter
 import json
 import os
 from pathlib import Path
@@ -125,28 +125,10 @@ def introduces_comment(tool_name: str, tool_input: dict[str, Any]) -> bool:
     return False
 
 
-def was_already_challenged(event: dict[str, Any], plugin_data: Path) -> bool:
-    """Record a proposed edit without storing its source text."""
-    identity = {
-        "session_id": event.get("session_id", "unknown-session"),
-        "tool_name": event.get("tool_name", ""),
-        "tool_input": event.get("tool_input", {}),
-    }
-    digest = hashlib.sha256(
-        json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    ).hexdigest()
-    state_path = plugin_data / "challenged-edits.json"
-    try:
-        challenged = json.loads(state_path.read_text(encoding="utf-8"))
-        if not isinstance(challenged, list):
-            challenged = []
-    except (OSError, UnicodeError, json.JSONDecodeError):
-        challenged = []
-    if digest in challenged:
-        return True
-    plugin_data.mkdir(parents=True, exist_ok=True)
-    state_path.write_text(json.dumps((challenged + [digest])[-1000:]), encoding="utf-8")
-    return False
+def marker_path(event: dict[str, Any], plugin_data: Path) -> Path:
+    tool_use_id = str(event.get("tool_use_id", "unknown-tool-use"))
+    digest = hashlib.sha256(tool_use_id.encode("utf-8")).hexdigest()
+    return plugin_data / "pending-comment-reviews" / digest
 
 
 def main() -> int:
@@ -154,19 +136,30 @@ def main() -> int:
         event = json.load(sys.stdin)
         tool_name = str(event.get("tool_name", ""))
         tool_input = event.get("tool_input", {})
-        if not isinstance(tool_input, dict) or not introduces_comment(tool_name, tool_input):
+        if not isinstance(tool_input, dict):
             return 0
 
         plugin_root = Path(os.environ.get("CLAUDE_PLUGIN_ROOT", Path(__file__).resolve().parent.parent))
         plugin_data = Path(os.environ.get("CLAUDE_PLUGIN_DATA", plugin_root / ".commenter-data"))
-        if was_already_challenged(event, plugin_data):
+        marker = marker_path(event, plugin_data)
+        event_name = str(event.get("hook_event_name", ""))
+        if event_name == "PreToolUse":
+            if introduces_comment(tool_name, tool_input):
+                marker.parent.mkdir(parents=True, exist_ok=True)
+                marker.touch()
             return 0
+        if event_name == "PostToolUseFailure":
+            marker.unlink(missing_ok=True)
+            return 0
+        if event_name != "PostToolUse" or not marker.exists():
+            return 0
+        marker.unlink()
+
         prompt = (plugin_root / "prompt.md").read_text(encoding="utf-8").strip()
         output = {
             "hookSpecificOutput": {
-                "hookEventName": "PreToolUse",
-                "permissionDecision": "deny",
-                "permissionDecisionReason": prompt,
+                "hookEventName": "PostToolUse",
+                "additionalContext": prompt,
             }
         }
         json.dump(output, sys.stdout)

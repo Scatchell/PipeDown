@@ -64,8 +64,10 @@ class CommentDetectionTests(unittest.TestCase):
             "new_string": "# value",
         }))
 
-    def test_cli_returns_denial_with_prompt(self):
-        event = {
+    def test_cli_adds_context_after_successful_edit(self):
+        pre_event = {
+            "hook_event_name": "PreToolUse",
+            "tool_use_id": "toolu_test",
             "tool_name": "Edit",
             "tool_input": {
                 "file_path": "main.go",
@@ -75,20 +77,27 @@ class CommentDetectionTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as plugin_data:
             environment = {"CLAUDE_PLUGIN_DATA": plugin_data}
-            result = subprocess.run(
+            pre_result = subprocess.run(
                 [sys.executable, str(ROOT / "scripts/detect_comments.py")],
-                input=json.dumps(event), text=True, capture_output=True, check=True, env=environment,
+                input=json.dumps(pre_event), text=True, capture_output=True, check=True, env=environment,
             )
-            output = json.loads(result.stdout)
-            decision = output["hookSpecificOutput"]
-            self.assertEqual(decision["permissionDecision"], "deny")
-            self.assertIn("A new code comment was detected", decision["permissionDecisionReason"])
+            self.assertEqual(pre_result.stdout, "")
 
-            retry = subprocess.run(
+            post_event = {**pre_event, "hook_event_name": "PostToolUse", "tool_response": {"success": True}}
+            post_result = subprocess.run(
                 [sys.executable, str(ROOT / "scripts/detect_comments.py")],
-                input=json.dumps(event), text=True, capture_output=True, check=True, env=environment,
+                input=json.dumps(post_event), text=True, capture_output=True, check=True, env=environment,
             )
-            self.assertEqual(retry.stdout, "")
+            output = json.loads(post_result.stdout)["hookSpecificOutput"]
+            self.assertEqual(output["hookEventName"], "PostToolUse")
+            self.assertIn("A new code comment was detected", output["additionalContext"])
+            self.assertNotIn("permissionDecision", output)
+
+            repeated_post = subprocess.run(
+                [sys.executable, str(ROOT / "scripts/detect_comments.py")],
+                input=json.dumps(post_event), text=True, capture_output=True, check=True, env=environment,
+            )
+            self.assertEqual(repeated_post.stdout, "")
 
 
 if __name__ == "__main__":
