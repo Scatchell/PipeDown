@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-"""Detect added comments before an edit and request review after it succeeds."""
+"""Shared lexical comment-detection helpers used by the pre/post tool-use hooks."""
 
 from __future__ import annotations
 
 import hashlib
-from collections import Counter
-import json
 import os
+from collections import Counter
 from pathlib import Path
-import sys
 from typing import Any
 
 
@@ -24,8 +22,10 @@ SQL_EXTENSIONS = {".sql"}
 LUA_EXTENSIONS = {".lua"}
 MARKUP_EXTENSIONS = {".astro", ".htm", ".html", ".md", ".mdx", ".svelte", ".xml"}
 
+Syntax = tuple[tuple[str, ...], tuple[tuple[str, str], ...]]
 
-def syntax_for(path: str) -> tuple[tuple[str, ...], tuple[tuple[str, str], ...]] | None:
+
+def syntax_for(path: str) -> Syntax | None:
     extension = Path(path).suffix.lower()
     name = Path(path).name.lower()
     if extension in HASH_EXTENSIONS or name in {"dockerfile", "makefile", "rakefile"}:
@@ -41,7 +41,7 @@ def syntax_for(path: str) -> tuple[tuple[str, ...], tuple[tuple[str, str], ...]]
     return None
 
 
-def extract_comments(text: str, syntax: tuple[tuple[str, ...], tuple[tuple[str, str], ...]]) -> list[str]:
+def extract_comments(text: str, syntax: Syntax) -> list[str]:
     line_markers, block_markers = syntax
     comments: list[str] = []
     index = 0
@@ -125,48 +125,11 @@ def introduces_comment(tool_name: str, tool_input: dict[str, Any]) -> bool:
     return False
 
 
+def plugin_data_dir(plugin_root: Path) -> Path:
+    return Path(os.environ.get("CLAUDE_PLUGIN_DATA", plugin_root / ".commenter-data"))
+
+
 def marker_path(event: dict[str, Any], plugin_data: Path) -> Path:
     tool_use_id = str(event.get("tool_use_id", "unknown-tool-use"))
     digest = hashlib.sha256(tool_use_id.encode("utf-8")).hexdigest()
     return plugin_data / "pending-comment-reviews" / digest
-
-
-def main() -> int:
-    try:
-        event = json.load(sys.stdin)
-        tool_name = str(event.get("tool_name", ""))
-        tool_input = event.get("tool_input", {})
-        if not isinstance(tool_input, dict):
-            return 0
-
-        plugin_root = Path(os.environ.get("CLAUDE_PLUGIN_ROOT", Path(__file__).resolve().parent.parent))
-        plugin_data = Path(os.environ.get("CLAUDE_PLUGIN_DATA", plugin_root / ".commenter-data"))
-        marker = marker_path(event, plugin_data)
-        event_name = str(event.get("hook_event_name", ""))
-        if event_name == "PreToolUse":
-            if introduces_comment(tool_name, tool_input):
-                marker.parent.mkdir(parents=True, exist_ok=True)
-                marker.touch()
-            return 0
-        if event_name == "PostToolUseFailure":
-            marker.unlink(missing_ok=True)
-            return 0
-        if event_name != "PostToolUse" or not marker.exists():
-            return 0
-        marker.unlink()
-
-        prompt = (plugin_root / "prompt.md").read_text(encoding="utf-8").strip()
-        output = {
-            "hookSpecificOutput": {
-                "hookEventName": "PostToolUse",
-                "additionalContext": prompt,
-            }
-        }
-        json.dump(output, sys.stdout)
-        return 0
-    except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError):
-        return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

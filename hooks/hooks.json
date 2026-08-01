@@ -8,7 +8,7 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/detect_comments.py"],
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/pre_tool_use.py"],
             "timeout": 10,
             "statusMessage": "Checking for new code comments"
           }
@@ -22,7 +22,7 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/detect_comments.py"],
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/post_tool_use.py"],
             "timeout": 10,
             "statusMessage": "Reviewing new code comments"
           }
@@ -36,7 +36,7 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/detect_comments.py"],
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/post_tool_use.py"],
             "timeout": 10
           }
         ]
