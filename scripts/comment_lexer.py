@@ -126,7 +126,7 @@ def introduces_comment(tool_name: str, tool_input: dict[str, Any]) -> bool:
 
 
 def plugin_data_dir(plugin_root: Path) -> Path:
-    return Path(os.environ.get("CLAUDE_PLUGIN_DATA", plugin_root / ".commenter-data"))
+    return Path(os.environ.get("CLAUDE_PLUGIN_DATA", plugin_root / ".pipedown-data"))
 
 
 def marker_path(event: dict[str, Any], plugin_data: Path) -> Path:

@@ -1,6 +1,6 @@
-# Commenter
+# PipeDown
 
-Commenter is a Claude Code plugin that reviews newly added code comments after successful file edits. It uses a deterministic, dependency-free lexer; no model call is used for detection.
+PipeDown is a Claude Code plugin that reviews newly added code comments after successful file edits. It uses a deterministic, dependency-free lexer; no model call is used for detection.
 
 When a supported edit introduces a comment, the PostToolUse hook forces the contents of [`prompt.md`](prompt.md) onto Claude by exiting with status `2` and writing the prompt to stderr. Edits with comments are never rejected, but the review is surfaced as feedback Claude must respond to (not as easily-skipped or forgotten ambient context). Claude reviews the completed change once and can remove an unnecessary comment, improve the surrounding code, or retain a justified comment unchanged. The review fires exactly once per comment-introducing edit; if Claude judges the comment justified, nothing repeats or re-checks it.
 
@@ -54,15 +54,16 @@ A public repository is not required for local use. For easy installation on othe
 
 ```text
 /plugin marketplace add Scatchell/commenter
-/plugin install commenter@commenter-plugins
+/plugin install pipedown@pipedown-plugins
 ```
 
-To update after new changes are pushed to this repo, use Claude's marketplace update commands:
+To update after new changes are pushed to this repo, run:
 
 ```text
-/plugin marketplace update commenter-plugins
-/plugin update commenter@commenter-plugins
+/plugin marketplace update pipedown-plugins
 ```
+
+Restart active Claude Code sessions afterward to load the updated copy.
 
 The manifest intentionally has no fixed version, so each new Git commit can be detected as a new plugin version for GitHub marketplace installations.
 

@@ -4,8 +4,8 @@ set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 PLUGIN_ROOT=$(dirname -- "$SCRIPT_DIR")
-MARKETPLACE_NAME="commenter-plugins"
-PLUGIN_NAME="commenter"
+MARKETPLACE_NAME="pipedown-plugins"
+PLUGIN_NAME="pipedown"
 PLUGIN_ID="${PLUGIN_NAME}@${MARKETPLACE_NAME}"
 CONFIG_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 PLUGIN_CACHE_DIR="${CONFIG_DIR}/plugins/cache/${MARKETPLACE_NAME}/${PLUGIN_NAME}"

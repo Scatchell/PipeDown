@@ -1,8 +1,8 @@
 {
-  "name": "commenter",
+  "name": "pipedown",
   "description": "Challenges newly added code comments before Claude writes them.",
   "author": {
-    "name": "Commenter maintainers"
+    "name": "PipeDown maintainers"
   },
   "license": "MIT"
 }

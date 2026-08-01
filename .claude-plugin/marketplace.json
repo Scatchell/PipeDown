@@ -1,12 +1,12 @@
 {
-  "name": "commenter-plugins",
+  "name": "pipedown-plugins",
   "owner": {
-    "name": "Commenter maintainers"
+    "name": "PipeDown maintainers"
   },
   "description": "Claude Code plugins for keeping code comments intentional",
   "plugins": [
     {
-      "name": "commenter",
+      "name": "pipedown",
       "source": "./",
       "description": "Challenges newly added code comments before Claude writes them"
     }
