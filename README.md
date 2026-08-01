@@ -53,11 +53,11 @@ scripts/post_tool_use.py runs
 A public repository is not required for local use. For easy installation on other machines, push this directory to a GitHub repository, then use:
 
 ```text
-/plugin marketplace add OWNER/REPOSITORY
+/plugin marketplace add Scatchell/commenter
 /plugin install commenter@commenter-plugins
 ```
 
-To update after changes are pushed, either run `./scripts/deploy.sh` from a checkout or use Claude's marketplace update commands:
+To update after new changes are pushed to this repo, use Claude's marketplace update commands:
 
 ```text
 /plugin marketplace update commenter-plugins
@@ -65,6 +65,18 @@ To update after changes are pushed, either run `./scripts/deploy.sh` from a chec
 ```
 
 The manifest intentionally has no fixed version, so each new Git commit can be detected as a new plugin version for GitHub marketplace installations.
+
+## Customize The Challenge
+
+Edit [`prompt.md`](prompt.md). The complete file is returned to Claude whenever a new comment is found. Run `/reload-plugins` when testing directly from source, or rerun `./scripts/deploy.sh` to replace the permanent installation.
+
+## Detection Scope
+
+The hook watches `Edit`, `Write`, `MultiEdit`, and `NotebookEdit`. It recognizes common comment forms in Python, Ruby, shell, Perl, R, YAML, TOML, C-family languages, JavaScript/TypeScript, CSS, SQL, Lua, HTML/XML, and related file extensions.
+
+Existing unchanged comments, comment delimiters inside ordinary quoted strings, and shebang lines do not trigger the hook. Unknown file extensions and malformed hook input fail open. Detection is lexical rather than parser-based, so unusual language constructs can produce false positives or false negatives.
+
+For accurate `Write` detection, the pre-edit hook records a temporary marker keyed by Claude's tool-use ID. After a successful edit, the marker is consumed and the review is forced via stderr and exit code `2` (see [How It Works](#how-it-works)). Source text and comment text are never stored.
 
 ## Developer local install
 
@@ -84,7 +96,7 @@ Run the test suite before deploying local changes:
 python3 -m unittest discover -s tests -v
 ```
 
-## Update Or Reinstall
+### Update Or Reinstall Locally
 
 Run the same command after changing or pulling the source:
 
@@ -100,19 +112,8 @@ To test directly from source without installing, run this from the repository's 
 claude --plugin-dir ./commenter
 ```
 
-## Customize The Challenge
 
-Edit [`prompt.md`](prompt.md). The complete file is returned to Claude whenever a new comment is found. Run `/reload-plugins` when testing directly from source, or rerun `./scripts/deploy.sh` to replace the permanent installation.
-
-## Detection Scope
-
-The hook watches `Edit`, `Write`, `MultiEdit`, and `NotebookEdit`. It recognizes common comment forms in Python, Ruby, shell, Perl, R, YAML, TOML, C-family languages, JavaScript/TypeScript, CSS, SQL, Lua, HTML/XML, and related file extensions.
-
-Existing unchanged comments, comment delimiters inside ordinary quoted strings, and shebang lines do not trigger the hook. Unknown file extensions and malformed hook input fail open. Detection is lexical rather than parser-based, so unusual language constructs can produce false positives or false negatives.
-
-For accurate `Write` detection, the pre-edit hook records a temporary marker keyed by Claude's tool-use ID. After a successful edit, the marker is consumed and the review is forced via stderr and exit code `2` (see [How It Works](#how-it-works)). Source text and comment text are never stored.
-
-## Test
+### Run Tests
 
 ```sh
 python3 -m unittest discover -s tests -v
