@@ -1,14 +1,9 @@
 A new code comment was detected.
 
-The edit has already succeeded. Review the new comment before continuing:
-- Can the code be made self-explanatory instead? Consider changing variable or function names, reorganizing the code, types, tests, or in the best case creating a readable domain object that encapsulates the logic.
-- If above is impossible, does the comment at least explain WHY rather than restating WHAT?
-- Is the comment necessary for a non-obvious constraint, invariant, workaround, security concern, or external dependency? Ensure the comment is not simply stating what the code is doing or reflecting a conversation you recently had with the user.
-- Ensure the comment is not an AI-added note to the user. All communication with the user should happen through the Claude CLI, NOT through comments. Comments are only for complexity that cannot be made self-explanatory and needs additional context.
+The edit has already succeeded. Work through the following steps in order, and stop at the first one that applies:
 
-If the comment is valuable exactly as is, leave it unchanged and continue; do not rewrite or remove it merely to satisfy this reminder.
-
-Remove the comment (along with an potential change to the code to make it more readable) if after reviewing the above thoughts, you are confident it doesn't offer value as a comment and can be replaced with more readable code or domain representations.
-
-If the comment adds durable information that cannot be communicated clearly in code, at least attempt to tighten it so it gets the idea across using the minimum number of words.
-
+1. Refactor first. Ask whether the comment is compensating for a bad name or tangled logic. If a rename (variable, function, type), a small extraction, or a light reorganization would make the comment unnecessary, do that refactor now and delete the comment. This is the preferred outcome — prefer it even if it costs more than one edit or touches call sites beyond this line.
+2. Remove if it's noise. If the comment merely restates what the code does, states the obvious, or is an AI-added note to the user (e.g. explaining what you changed or why), delete it. All communication with the user happens through the Claude CLI, never through comments.
+3. Keep only if durable and non-obvious. A comment earns its place only if it explains a WHY the code itself can't express through some small code changes making it more readable: e.g. a non-obvious constraint, invariant, workaround, security concern, or external dependency. If it qualifies, leave it as close to unchanged as possible
+4. Tighten only if the above is not possible. You should only reach this step if step 1 was genuinely impossible and step 3 applies. Before tightening, go back and double check: is there really no name or restructuring that would make this comment unneeded? If you're confident there isn't, trim the comment to the minimum words that still get the idea across.
+5. If the comment offers legitimate value, keep it only as a last resort  — do not rewrite or remove it merely to satisfy this reminder.
