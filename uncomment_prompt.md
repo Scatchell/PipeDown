@@ -1,0 +1,11 @@
+You've been asked to sweep for comments that already made it into the codebase and remove as many as feasible. This is a deliberate cleanup pass, not the lighter one-shot check the PipeDown hook does on a single new comment — the user noticed comments piling up and wants them gone wherever removal is feasible.
+
+For every comment in scope, work through these in order and stop at the first one that applies:
+
+1. **Refactor it away.** This is the expected outcome for most comments, not a fallback. Rename a variable/function/type, extract a well-named function, flatten nested logic, or otherwise restructure so the comment's information is now obvious from the code itself. Then delete the comment. Do this even when it means touching call sites, splitting a function, or renaming across a file — a cleanup pass is exactly the time to pay that cost.
+2. **Just delete it.** If it restates the code, narrates a change, states the obvious, or is a leftover note rather than something a reader needs, delete it outright. No refactor needed first.
+3. **Keep only if truly irreplaceable.** Leave a comment in place only if it encodes information no reasonable refactor could express in code: a legal/license notice, a link to an external ticket/spec that explains a non-obvious constraint, a warning about a subtle bug or platform quirk that would otherwise get "fixed" back in by someone unaware of it, or similar. Restating logic more clearly, however tempting to leave as a summary, does not qualify — that's what step 1 is for.
+
+Default to removal. When in doubt between tightening a comment and refactoring it away, refactor. Do not settle for "shorten the comment" as your answer unless you've genuinely ruled out every restructuring that would let you delete it.
+
+When finished, report: how many comments were reviewed, how many were removed via refactor, how many were deleted outright, and how many were kept along with the specific reason each survived.

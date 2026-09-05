@@ -2,6 +2,8 @@
 
 PipeDown is a Claude Code plugin that reviews newly added code comments after successful file edits. It uses a deterministic, dependency-free lexer; no model call is used for detection.
 
+It also ships a `/uncomment` slash command for reviewing comments on demand, independent of the hook.
+
 When a supported edit introduces a comment, the PostToolUse hook forces the contents of [`prompt.md`](prompt.md) onto Claude by exiting with status `2` and writing the prompt to stderr. Edits with comments are never rejected, but the review is surfaced as feedback Claude must respond to (not as easily-skipped or forgotten ambient context). Claude reviews the completed change once and can remove an unnecessary comment, improve the surrounding code, or retain a justified comment unchanged. The review fires exactly once per comment-introducing edit; if Claude judges the comment justified, nothing repeats or re-checks it.
 
 Note: When claude changes a comment (e.g. to tighten or summarize a long comment) this plugin DOES execute again and recheck the tightened comment. This is unnecessary but not dangerous.
@@ -41,6 +43,10 @@ scripts/post_tool_use.py runs
 ```
 
 `scripts/comment_lexer.py` is a shared library, not a hook entry point — it holds the comment-syntax detection logic used by both `pre_tool_use.py` and `post_tool_use.py` so it isn't duplicated between them. Only `pre_tool_use.py` and `post_tool_use.py` are registered in [`hooks/hooks.json`](hooks/hooks.json).
+
+## `/uncomment`
+
+The hook only ever looks at comments introduced by the tool call it's reacting to, and it treats a justified comment as fine to keep. [`commands/uncomment.md`](commands/uncomment.md) is a separate, more aggressive on-demand sweep for when comments have piled up and you deliberately want as many gone as feasible. It scans every comment in the current git diff and in files edited this session — including ones that predate this session but sit inside a changed hunk, and ones the hook already let through — and applies [`uncomment_prompt.md`](uncomment_prompt.md), which defaults to refactoring or deleting rather than tightening or keeping, and reserves keeping a comment for cases a refactor genuinely cannot resolve (license notices, links to external context, warnings about a non-obvious bug or platform quirk).
 
 ## Requirements
 
