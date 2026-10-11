@@ -59,7 +59,7 @@ The hook only ever looks at comments introduced by the tool call it's reacting t
 A public repository is not required for local use. For easy installation on other machines, push this directory to a GitHub repository, then use:
 
 ```text
-/plugin marketplace add Scatchell/commenter
+/plugin marketplace add Scatchell/PipeDown
 /plugin install pipedown@pipedown-plugins
 ```
 
@@ -116,7 +116,7 @@ Deployment preserves the plugin's persistent data, removes the previous installe
 To test directly from source without installing, run this from the repository's parent directory:
 
 ```sh
-claude --plugin-dir ./commenter
+claude --plugin-dir ./PipeDown
 ```
 
 
